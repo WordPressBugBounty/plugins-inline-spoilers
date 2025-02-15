@@ -1,121 +1,95 @@
 <?php
-/*
- * Plugin Name:				Inline Spoilers
- * Plugin URI:				https://wordpress.org/plugins/inline-spoilers/
- * Description:				The plugin allows to create content spoilers with simple shortcode & guttenberg block.
- * Version:						1.5.5
- * Requires at least:	5.2
- * Tested up to:			6.2.2
- * Requires PHP:			5.6
- * Author:						Sergey Kuzmich
- * Author URI:				http://kuzmi.ch
- * License:						GPLv3 or later
- * License URI:				https://www.gnu.org/licenses/gpl-3.0.html
- * Text Domain:				inline-spoilers
- * Domain Path:				/languages/
+/**
+ * Inline Spoilers
+ *
+ * @package           Inline Spoilers
+ * @author            Sergey Kuzmich
+ * @license           GPLv3 or later
+ *
+ * @wordpress-plugin
+ * Plugin Name:             Inline Spoilers
+ * Plugin URI:              https://github.com/sergeykuzmich/inline-spoilers
+ * Description:             The plugin allows to create content spoilers with Guttenberg block or simple shortcode.
+ * Version:                 2.0.0
+ * Requires at least:       6.6
+ * Tested up to:            6.7.1
+ * Requires PHP:            7.2
+ * Author:                  Sergey Kuzmich
+ * Author URI:              https://kuzmi.ch
+ * License:                 GPLv3 or later
+ * License URI:             https://www.gnu.org/licenses/gpl-3.0.html
+ * Text Domain:             inline-plugin
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
 
 /**
- * @package Inline Spoilers
+ * Init Gutenberg block.
+ *
+ * @return void
  */
-
-if ( ! defined( 'WPINC' ) ) {
-	die;
-}
-
-// Define has_block function for WordPress 4.9.10 and older.
-if ( ! function_exists( 'has_block' ) ) {
-	function has_block( $block, $context ) {
-		return false;
+function inline_spoilers_block_init(): void {
+	if ( ! function_exists( 'register_block_type' ) ) {
+		return;
 	}
+
+	register_block_type( __DIR__ . '/build' );
 }
 
-add_action( 'plugins_loaded', 'is_load_textdomain' );
-function is_load_textdomain() {
-	load_plugin_textdomain( 'inline-spoilers', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-}
+add_action( 'init', 'inline_spoilers_block_init' );
 
-function is_get_initial_props( $initial_state ) {
-	return ( 'collapsed' === $initial_state )
-					? array(
-						'head_class' => ' collapsed',
-						'body_atts'  => 'style="display: none;"',
-						'head_hint'  => __( 'Expand', 'inline-spoilers' ),
-					)
-					: array(
-						'head_class' => ' expanded',
-						'body_atts'  => 'style="display: block;"',
-						'head_hint'  => __( 'Collapse', 'inline-spoilers' ),
-					);
-}
-
-add_shortcode( 'spoiler', 'is_spoiler_shortcode' );
-function is_spoiler_shortcode( $atts, $content ) {
+/**
+ * Register the shortcode.
+ *
+ * @param  array  $atts  List of attributes.
+ * @param  string $content  The content to be placed inside the spoiler.
+ *
+ * @return string
+ */
+function inline_spoilers_spoiler_shortcode( array $atts, string $content ): string {
 	$attributes = shortcode_atts(
 		array(
-			'title'         => '&nbsp;',
-			'initial_state' => 'collapsed',
+			'title' => __( 'Spoiler', 'inline-spoilers' ),
+			'open'  => in_array( 'open', $atts, true ),
 		),
 		$atts,
 		'spoiler'
 	);
 
-	$initial_state = esc_attr( $attributes['initial_state'] );
-	$title         = esc_attr( $attributes['title'] );
+	$start = '<details class="wp-block-inline-spoilers-block"' . ( $attributes['open'] ? ' open' : '' ) . '>';
+	$title = '<summary>' . esc_attr( $attributes['title'] ) . '</summary>';
+	$body  = balanceTags( do_shortcode( $content ), true );
+	$end   = '</details>';
 
-	$props = is_get_initial_props( $initial_state );
-
-	$head = '<div class="spoiler-head no-icon ' . $props['head_class'] . '" title="' . $props['head_hint'] . '">' . $title . '</div>';
-
-	$body  = '<div class="spoiler-body" ' . $props['body_atts'] . '>';
-	$body .= balanceTags( do_shortcode( $content ), true );
-	$body .= '</div>';
-
-	$extra  = '<div class="spoiler-body">';
-	$extra .= balanceTags( do_shortcode( $content ), true );
-	$extra .= '</div>';
-
-	$output  = '<div><div class="spoiler-wrap">';
-	$output .= $head . $body;
-	$output .= ( 'collapsed' === $initial_state )
-								? '<noscript>' . $extra . '</noscript>' : '';
-	$output .= '</div></div>';
-
-	return $output;
+	return $start . $title . $body . $end;
 }
 
-add_action( 'wp_enqueue_scripts', 'is_styles_scripts' );
-function is_styles_scripts() {
-	global $post;
+add_shortcode( 'spoiler', 'inline_spoilers_spoiler_shortcode' );
 
-	wp_register_style( 'inline-spoilers_style', plugins_url( 'styles/inline-spoilers-default.css', __FILE__ ), null, '1.4.1' );
-	wp_register_script( 'inline-spoilers_script', plugins_url( 'scripts/inline-spoilers-scripts.js', __FILE__ ), array( 'jquery' ), '1.4.1', true );
-
-	wp_enqueue_style( 'inline-spoilers_style' );
-	wp_enqueue_script( 'inline-spoilers_script' );
-
-	$translation_array = array(
-		'expand'   => __( 'Expand', 'inline-spoilers' ),
-		'collapse' => __( 'Collapse', 'inline-spoilers' ),
+/**
+ * Register styles and scripts of block version 1.5.5.
+ *
+ * @return void
+ */
+function inline_spoilers_block_155_css_js(): void {
+	wp_register_style(
+		'inline-spoilers-compatibility_css',
+		plugins_url( 'block_155/css/compatibility.css', __FILE__ ),
+		array(),
+		'1.5.5'
 	);
+	wp_enqueue_style( 'inline-spoilers-compatibility_css' );
 
-	wp_localize_script( 'inline-spoilers_script', 'title', $translation_array );
-}
-
-add_action( 'init', 'spoiler_block_init' );
-function spoiler_block_init() {
-	if ( ! function_exists( 'register_block_type' ) ) {
-		return;
-	}
-
-	wp_register_script( 'block-editor', plugins_url( 'block/index.js', __FILE__ ), array( 'wp-blocks', 'wp-i18n', 'wp-element' ), '1.4.1', true );
-	wp_register_style( 'block-editor', plugins_url( 'block/editor.css', __FILE__ ), array(), '1.4.1' );
-
-	register_block_type(
-		'inline-spoilers/block',
-		array(
-			'editor_script' => 'block-editor',
-			'editor_style'  => 'block-editor',
-		)
+	wp_register_script(
+		'inline-spoilers-compatibility_js',
+		plugins_url( 'block_155/js/compatibility.js', __FILE__ ),
+		array( 'jquery' ),
+		'1.5.5',
+		array( 'in_footer' => true )
 	);
+	wp_enqueue_script( 'inline-spoilers-compatibility_js' );
 }
+
+add_action( 'wp_enqueue_scripts', 'inline_spoilers_block_155_css_js' );

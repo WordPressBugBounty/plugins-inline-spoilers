@@ -1,18 +1,18 @@
 === Inline Spoilers ===
 Contributors: sergeykuzmich, gadswan
-Tags: shortcode, spoiler
-Stable tag: 1.5.5
-Tested up to: 6.2.2
-Requires at least: 5.2
-Requires PHP: 5.6
+Tags: shortcode, spoiler, bbcode, toggle, guttenberg, block
+Stable tag: 2.0.0
+Tested up to: 6.7.1
+Requires at least: 6.6
+Requires PHP: 7.2
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-The plugin allows to create content spoilers with simple shortcode & guttenberg block.
+The plugin allows to create content spoilers with Guttenberg block or simple shortcode.
 
 == Description ==
 
-The plugin allows to create content spoilers with simple shortcode & guttenberg block.
+The plugin allows to create content spoilers with Guttenberg block or simple shortcode.
 
 `
 [spoiler title="Expand Me"]Spoiler content[/spoiler]
@@ -22,12 +22,12 @@ The plugin allows to create content spoilers with simple shortcode & guttenberg 
 
 1. Install via WordPress Dashboard or upload `inline-spoiler.zip`;
 2. Activate the plugin through the 'Plugins' menu in WordPress;
-3. Use shortcode & block in your content;
+3. Use Guttenberg block or shortcode in your content;
 
 == Frequently Asked Questions ==
 
 = How can I customize design of the spoiler? =
-Just override classes defined in `styles/inline-spoilers-styles.css` with your theme styles.
+Just override classes defined in `build/style-index.css` with your theme styles.
 
 == Screenshots ==
 
@@ -38,75 +38,14 @@ Just override classes defined in `styles/inline-spoilers-styles.css` with your t
 
 == Changelog ==
 
-= 1.5.5 =
-* Fix https://wordpress.org/support/topic/attempt-to-read-property-post_content-2/
+= 2.0.0 =
 
-= 1.5.4 =
-* Minify assets
-* Update WordPress "Requires at least" version
-* Update WordPress "Tested up to" version
+* Change spoiler HTML semantic (from `div` to `details` & `summary`)
+  * All blocks created with the previous version of Guttenberg block will be the same as before, until you edit them
+* Allow spoilers inside spoilers (as well as any other Guttengerg blocks allowed in post)
 
-= 1.5.1 =
-* Fix `Inline Spoiler` block doesn't appear in Guttenberg editor (https://wordpress.org/support/topic/block-folder-is-missing/)
+**WARNING**
+* Minimal required WordPress version is 6.6 (for JSX support, [JSX in WordPress 6.6](https://make.wordpress.org/core/2024/06/06/jsx-in-wordpress-6-6/))
+* The plugin is not fully tested with PHP versions lower than 8.1 due to the lack of available [official docker images](https://hub.docker.com/_/wordpress/)
 
-= 1.5.0 =
-* Make flag for non-optimized script & style loading to prevent issues on some child themes (see https://wordpress.org/support/topic/spoiler-doesnt-show-up/ for more information)
-
-`
-wp-config.php:
-
-...
-/** Set FALSE to disable 'Inline Spoliers' plugin script & style optimization
-define( 'IS_OPTIMIZE_LOADER', false );
-
-/* That's all, stop editing! Happy publishing. */
-...
-`
-
-= 1.4.1 =
-* Fix https://wordpress.org/support/topic/fatal-error-when-activating-the-plugin-10/
-
-= 1.4.0 =
-* Introduce Guttenberg block to create spoilers (special thanks to [Sergey Zaytsev](https://www.linkedin.com/in/sergey-zaytsev-b50857b0/) for doing most of things)
-
-= 1.3.8 =
-* Allow empty spoiler title by default
-
-= 1.3.7 =
-* Refactor deployment strategy to support multiply revisions for the same plugin version
-
-= 1.3.3 =
-* Fix https://wordpress.org/support/topic/notice-undefined-variable-extra-in-wp-content-plugins-inline-spoilers-inlin/
-
-= 1.3.2 =
-* Compatibility up to Wordpress 4.9.8
-
-= 1.3.1 =
-* Always show spoiler contents while javascript is disabled
-
-= 1.2.8 =
-* Setup automated deployment with TravisCI
-
-= 1.2.5 =
-* Balance content html tags
-
-= 1.2.4 =
-* Add WP_DEBUG mode
-* Fix incorrect paragraph tags inside the spoiler
-
-= 1.2.3 =
-* JavaScript bug fix
-
-= 1.2.2 =
-* Update spoiler default behaviour
-
-= 1.1.2 =
-* Update Russian translation
-* Add attribute 'initial_state' to define default state of a spoiler `initial_state=(expanded|collapsed)`. Default state is 'collapsed'
-* Security updates
-
-= 1.0.2 =
-* Update Russian translation
-
-= 1.0.1 =
-* Release the plugin
+[OLDER VERSIONS](https://github.com/sergeykuzmich/inline-spoilers?tab=readme-ov-file#older-versions)
